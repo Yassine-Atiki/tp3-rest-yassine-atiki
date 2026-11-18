@@ -40,22 +40,22 @@ public class LlmClient {
                 .build();
     }
 
-    public String envoyer(String lieu) {
+    public String envoyer(String lieu, int nb) {
         try {
-            return verifierReponse(guideTouristique.envoyer(lieu));
+            return verifierReponse(guideTouristique.envoyer(lieu, nb), nb);
         } catch (RuntimeException erreur) {
             // Les exceptions du fournisseur peuvent contenir des détails de la requête.
             throw new IllegalStateException("Gemini n'a pas renvoyé de guide valide.");
         }
     }
 
-    private String verifierReponse(String reponse) {
+    private String verifierReponse(String reponse, int nb) {
         try (JsonReader lecteur = Json.createReader(new StringReader(reponse))) {
             JsonObject guide = lecteur.readObject();
             if (!guide.keySet().equals(CHAMPS_DU_GUIDE)
                     || !estTexte(guide.get("ville_ou_pays"))
                     || !(guide.get("endroits_a_visiter") instanceof JsonArray endroits)
-                    || endroits.size() != 2
+                    || endroits.size() != nb
                     || !endroits.stream().allMatch(LlmClient::estTexte)
                     || !estTexte(guide.get("prix_moyen_repas"))) {
                 throw new IllegalArgumentException("Format de guide incorrect.");
